@@ -1,10 +1,12 @@
 package com.lotusinc.transportmanagmentsystem
 
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.lotusinc.transportmanagmentsystem.attendance.LandingPage
 import com.lotusinc.transportmanagmentsystem.login.LoginPage
 import com.lotusinc.transportmanagmentsystem.login.LoginViewModel
 import com.lotusinc.transportmanagmentsystem.ui.theme.TransportManagmentSystemTheme
@@ -49,6 +52,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun Content(
     modifier: Modifier = Modifier,
@@ -63,51 +67,12 @@ private fun Content(
             userType = it.orEmpty()
             isUserLoggedIn = true
         }
-        LandingPage(userType)
+        LandingPage(userType, context = localContext)
 
     } else {
         LoginPage(localContext) { email, message ->
             isUserLoggedIn = true
             userType = message
         }
-    }
-}
-
-@Composable
-fun LandingPage(name: String, modifier: Modifier = Modifier) {
-    when(name) {
-        "COORDINATOR" -> {
-            Column {
-                Text(
-                    text = "Hello there! Welcome to the Coordinator Portal",
-                    modifier = modifier.padding(24.dp)
-                )
-                Text(
-                    text = "This is the Coordinator Portal",
-                    modifier = modifier.padding(24.dp)
-                )
-            }
-        }
-
-        "STUDENT" -> {
-            Column {
-                Text(
-                    text = "Hello there! Welcome to the Student Portal",
-                    modifier = modifier.padding(24.dp)
-                )
-                Text(
-                    text = "This is the Student Portal",
-                    modifier = modifier.padding(24.dp)
-                )
-            }
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    TransportManagmentSystemTheme {
-        LandingPage("Android")
     }
 }
