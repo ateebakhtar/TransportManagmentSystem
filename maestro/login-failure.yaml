@@ -1,0 +1,11 @@
+appId: com.lotusinc.transportmanagmentsystem
+---
+- launchApp
+- tapOn: Email
+- inputText: "ateeb123@gmail.com"
+- tapOn: Password
+- inputText: "lotus123"
+- hideKeyboard
+- tapOn: Login
+- assertVisible: "The supplied auth credential is incorrect, malformed or has expired."
+

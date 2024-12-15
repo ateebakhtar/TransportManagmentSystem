@@ -10,9 +10,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun TopBar(
     title: String,
@@ -27,7 +32,12 @@ fun TopBar(
             )
         },
         actions = {
-            IconButton(onClick = onLogoutClick) {
+            IconButton(
+                modifier = Modifier
+                    .semantics { testTagsAsResourceId = true }
+                    .testTag("logout"),
+                onClick = onLogoutClick
+            ) {
                 Icon(
                     imageVector = Icons.Default.ExitToApp,
                     contentDescription = "Logout",

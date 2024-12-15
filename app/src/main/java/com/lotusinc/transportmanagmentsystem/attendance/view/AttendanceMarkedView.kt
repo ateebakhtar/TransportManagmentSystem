@@ -39,7 +39,7 @@ fun AttendanceMarkedView() {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "You have already marked your attendance today.",
+            text = "Attendance Marked",
             style = MaterialTheme.typography.titleMedium.copy(
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp

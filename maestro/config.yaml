@@ -1,0 +1,7 @@
+# config.yaml
+executionOrder:
+  continueOnFailure: true
+  flowsOrder:
+    - login-failure
+    - login-success-student
+

@@ -1,0 +1,12 @@
+appId: com.lotusinc.transportmanagmentsystem
+---
+- launchApp
+- tapOn: Email
+- inputText: "ateeb@gmail.com"
+- tapOn: Password
+- inputText: "lotus123"
+- hideKeyboard
+- tapOn: Login
+- assertVisible: "Student Dashboard"
+- tapOn:
+    id: logout

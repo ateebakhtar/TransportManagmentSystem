@@ -25,8 +25,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
@@ -50,7 +52,8 @@ fun LoginPage(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Login",
+            text = "Welcome to the Transport Application",
+            textAlign = TextAlign.Center,
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(bottom = 24.dp)
         )
@@ -90,13 +93,17 @@ fun LoginPage(
                 }
 
             },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth(),
             enabled = email.isNotEmpty() && password.isNotEmpty()
         ) {
             if (isLoading) {
                 Toast.makeText(localContext, "Loading", Toast.LENGTH_SHORT).show()
             } else {
-                Text(text = "Login")
+                Text(
+                    modifier = Modifier.testTag("Login"),
+                    text = "Login"
+                )
             }
         }
 
