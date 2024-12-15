@@ -1,11 +1,17 @@
 package com.lotusinc.transportmanagmentsystem.attendance
 
 import androidx.lifecycle.ViewModel
+import com.google.android.gms.tasks.Task
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.lotusinc.transportmanagmentsystem.attendance.model.Van
+import com.lotusinc.transportmanagmentsystem.attendance.model.VanAttendance
+import com.lotusinc.transportmanagmentsystem.attendance.model.VanWithAttendance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.text.SimpleDateFormat
@@ -91,4 +97,103 @@ class AttendanceViewModel : ViewModel() {
                 callback(emptyList()) // If there's an error, return an empty list
             }
     }
+
+
+    fun fetchAttendanceDetails(callback: (List<VanAttendance>) -> Unit) {
+        val firestore = FirebaseFirestore.getInstance()
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val todayDate = dateFormat.format(Date())
+
+        firestore.collection("attendance")
+            .whereEqualTo("date", todayDate) // Filter by today's date
+            .get()
+            .addOnSuccessListener { attendanceSnapshot ->
+                val vanAttendanceMap = mutableMapOf<String, MutableList<String>>()
+
+                // Build a map of vanId -> userId list
+                attendanceSnapshot.documents.forEach { document ->
+                    val vanId = document.getString("vanId")
+                    val userId = document.getString("userId")
+
+                    if (vanId != null && userId != null) {
+                        if (!vanAttendanceMap.containsKey(vanId)) {
+                            vanAttendanceMap[vanId] = mutableListOf()
+                        }
+                        vanAttendanceMap[vanId]?.add(userId)
+                    }
+                }
+
+                // Fetch user names for each userId
+                val vanAttendanceList = mutableListOf<VanAttendance>()
+                val userFetchTasks = mutableListOf<Task<QuerySnapshot>>()
+
+                for ((vanId, userIds) in vanAttendanceMap) {
+                    val userFetchTask = firestore.collection("UserInfo")
+                        .whereIn(FieldPath.documentId(), userIds)
+                        .get()
+                        .addOnSuccessListener { userSnapshot ->
+                            val studentNames = userSnapshot.documents.mapNotNull { it.getString("email") }
+                            vanAttendanceList.add(
+                                VanAttendance(
+                                    vanId = vanId,
+                                    count = studentNames.size,
+                                    listOfStudents = studentNames
+                                )
+                            )
+                        }
+                    userFetchTasks.add(userFetchTask)
+                }
+
+                // Wait for all user fetch tasks to complete
+                Tasks.whenAllComplete(userFetchTasks)
+                    .addOnSuccessListener {
+                        callback(vanAttendanceList)
+                    }
+                    .addOnFailureListener { e ->
+                        e.printStackTrace()
+                        callback(emptyList())
+                    }
+            }
+            .addOnFailureListener { e ->
+                e.printStackTrace()
+                callback(emptyList())
+            }
+    }
+
+
+    fun fetchVansAndAttendance(callback: (List<VanWithAttendance>) -> Unit) {
+        val firestore = FirebaseFirestore.getInstance()
+
+        firestore.collection("vans").get()
+            .addOnSuccessListener { snapshot ->
+                val vans = snapshot.documents.mapNotNull { document ->
+                    val driverName = document.getString("driver") ?: ""
+                    val number = document.getString("number") ?: ""
+                    val route = document.get("route") as? List<String> ?: emptyList()
+
+                    Van(driver = driverName, number = number, route = route)
+                }
+
+                // Fetch attendance details
+                fetchAttendanceDetails { attendanceList ->
+                    val combined = vans.map { van ->
+                        val attendance = attendanceList.find { it.vanId == van.number }
+                        VanWithAttendance(
+                            van = van,
+                            attendanceCount = attendance?.count ?: 0,
+                            studentNames = attendance?.listOfStudents ?: emptyList()
+                        )
+                    }
+
+                    callback.invoke(combined)
+                }
+            }
+            .addOnFailureListener { e ->
+                e.printStackTrace()
+                callback.invoke(emptyList())
+            }
+    }
 }
+
+
+

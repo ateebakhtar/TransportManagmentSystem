@@ -18,7 +18,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lotusinc.transportmanagmentsystem.attendance.model.Van
+import com.lotusinc.transportmanagmentsystem.attendance.model.VanWithAttendance
 import com.lotusinc.transportmanagmentsystem.attendance.view.StudentView
+import com.lotusinc.transportmanagmentsystem.attendance.view.VanAttendanceCard
 import com.lotusinc.transportmanagmentsystem.ui.theme.TransportManagmentSystemTheme
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -36,17 +38,16 @@ fun LandingPage(
     val attendanceViewModel: AttendanceViewModel = viewModel()
     val vans by attendanceViewModel.vans.collectAsState()
 
-    when(name) {
+    when (name) {
         "COORDINATOR" -> {
+            var vanAttendance by remember { mutableStateOf(mutableListOf<VanWithAttendance>()) }
             Column {
-                Text(
-                    text = "Hello there! Welcome to the Coordinator Portal",
-                    modifier = modifier.padding(24.dp)
-                )
-                Text(
-                    text = "This is the Coordinator Portal",
-                    modifier = modifier.padding(24.dp)
-                )
+                attendanceViewModel.fetchVansAndAttendance { vans ->
+                    vanAttendance = vans.toMutableList()
+                }
+                vanAttendance.forEach { van ->
+                    VanAttendanceCard(van)
+                }
             }
         }
 
@@ -64,13 +65,19 @@ fun LandingPage(
                 } else {
                     StudentView(vans) {
 
-                        val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-                        attendanceViewModel.markAttendance( it.number, date) { success ->
+                        val date =
+                            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                        attendanceViewModel.markAttendance(it.number, date) { success ->
                             if (success) {
-                                Toast.makeText(context, "Attendance marked!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Attendance marked!", Toast.LENGTH_SHORT)
+                                    .show()
                                 isAttendanceMarked = true
                             } else {
-                                Toast.makeText(context, "Failed to mark attendance.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    "Failed to mark attendance.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         }
                     }
