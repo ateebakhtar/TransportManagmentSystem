@@ -4,4 +4,8 @@ executionOrder:
   flowsOrder:
     - login-failure
     - login-success-student
+    - mark_attendance
+    - confirm_marked_attendance
+    - login-success-coordinator
+
 

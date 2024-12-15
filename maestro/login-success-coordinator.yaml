@@ -1,0 +1,12 @@
+appId: com.lotusinc.transportmanagmentsystem
+---
+- launchApp
+- tapOn: Email
+- inputText: "umer@gmail.com"
+- tapOn: Password
+- inputText: "lotus123"
+- hideKeyboard
+- tapOn: Login
+- assertVisible: "Coordinator Dashboard"
+- tapOn:
+    id: logout
