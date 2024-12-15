@@ -4,8 +4,10 @@ import android.content.Context
 import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -19,9 +21,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lotusinc.transportmanagmentsystem.attendance.model.Van
 import com.lotusinc.transportmanagmentsystem.attendance.model.VanWithAttendance
+import com.lotusinc.transportmanagmentsystem.attendance.view.AttendanceMarkedView
 import com.lotusinc.transportmanagmentsystem.attendance.view.StudentView
 import com.lotusinc.transportmanagmentsystem.attendance.view.VanAttendanceCard
 import com.lotusinc.transportmanagmentsystem.ui.theme.TransportManagmentSystemTheme
+import com.lotusinc.transportmanagmentsystem.ui.theme.views.TopBar
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.util.Date
@@ -32,7 +36,8 @@ import java.util.Locale
 fun LandingPage(
     name: String,
     modifier: Modifier = Modifier,
-    context: Context
+    context: Context,
+    onLogoutClick: () -> Unit
 ) {
 
     val attendanceViewModel: AttendanceViewModel = viewModel()
@@ -41,43 +46,60 @@ fun LandingPage(
     when (name) {
         "COORDINATOR" -> {
             var vanAttendance by remember { mutableStateOf(mutableListOf<VanWithAttendance>()) }
-            Column {
-                attendanceViewModel.fetchVansAndAttendance { vans ->
-                    vanAttendance = vans.toMutableList()
+            Scaffold(
+                topBar = {
+                    TopBar(title = "Coordinator Dashboard", onLogoutClick = { onLogoutClick.invoke() })
                 }
-                vanAttendance.forEach { van ->
-                    VanAttendanceCard(van)
+            ) { padding ->
+                // Your existing content goes here
+                Box(modifier = Modifier.padding(padding)) {
+                    Column {
+                        attendanceViewModel.fetchVansAndAttendance { vans ->
+                            vanAttendance = vans.toMutableList()
+                        }
+                        vanAttendance.forEach { van ->
+                            VanAttendanceCard(van)
+                        }
+                    }
                 }
             }
+
+
         }
 
         "STUDENT" -> {
-            Column {
-                var isAttendanceMarked by remember { mutableStateOf(false) }
-                attendanceViewModel.checkAttendance {
-                    isAttendanceMarked = it
+            Scaffold(
+                topBar = {
+                    TopBar(title = "Student Dashboard", onLogoutClick = { onLogoutClick.invoke() })
                 }
-                if (isAttendanceMarked) {
-                    Text(
-                        text = "You have already marked your attendance today.",
-                        modifier = modifier.padding(24.dp)
-                    )
-                } else {
-                    StudentView(vans) {
+            ) { padding ->
+                // Your existing content goes here
+                Box(modifier = Modifier.padding(padding)) {
+                    Column {
+                        var isAttendanceMarked by remember { mutableStateOf(false) }
+                        attendanceViewModel.checkAttendance {
+                            isAttendanceMarked = it
+                        }
+                        if (isAttendanceMarked) {
+                            AttendanceMarkedView()
+                        } else {
+                            StudentView(vans) {
 
-                        val date =
-                            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-                        attendanceViewModel.markAttendance(it.number, date) { success ->
-                            if (success) {
-                                Toast.makeText(context, "Attendance marked!", Toast.LENGTH_SHORT)
-                                    .show()
-                                isAttendanceMarked = true
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    "Failed to mark attendance.",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                val date =
+                                    SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                                attendanceViewModel.markAttendance(it.number, date) { success ->
+                                    if (success) {
+                                        Toast.makeText(context, "Attendance marked!", Toast.LENGTH_SHORT)
+                                            .show()
+                                        isAttendanceMarked = true
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Failed to mark attendance.",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
                             }
                         }
                     }

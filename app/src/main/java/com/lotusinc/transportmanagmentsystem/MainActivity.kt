@@ -67,7 +67,10 @@ private fun Content(
             userType = it.orEmpty()
             isUserLoggedIn = true
         }
-        LandingPage(userType, context = localContext)
+        LandingPage(userType, context = localContext) {
+            firebaseAuth.signOut()
+            isUserLoggedIn = false
+        }
 
     } else {
         LoginPage(localContext) { email, message ->
